@@ -21,16 +21,20 @@ import Html.Attributes exposing (class)
 import Json.Decode as Decode
   
   
+{-| The root data type for an outline. All outlines start at a RootNode and may
+grow recursively through any number of levels of nested ChildNodes.
+
+-}
 type RootNode = RootNode (List ChildNode)
 
 
 type ChildNode = ChildNode NodeContents
   
 
-type alias NodeContents = {
-  text : String,
-  children : List ChildNode
-}
+type alias NodeContents = 
+  { text : String
+  , children : List ChildNode
+  }
 
 
 {-| Create a new, single-level outline pre-populated with data.
