@@ -3,7 +3,7 @@ module Main exposing
   
   
 import Outline exposing (RootNode)
-import Html exposing (Html)
+import Html exposing (Html, beginnerProgram)
 
 
 type Msg =
@@ -17,19 +17,26 @@ type alias Model =
   
 initialModel : Model
 initialModel =
-  { outline : Outline.newOutline ["One", "Two", "Three"]
+  { outline = Outline.newOutline ["One", "Two", "Three"]
   }
+
+
+update : Msg -> Model -> Model
+update msg model =
+  case msg of
+    OutlineMsg outlineMsg ->
+      { model | outline = Outline.update outlineMsg model.outline }
+
   
-  
-view : Model -> Html
+view : Model -> Html msg
 view model =
   Outline.view model.outline 
 
-  
-main : Program Value Model Msg
+
+main : Program Never Model Msg  
 main = 
-  Program
-    { init = init
+  beginnerProgram
+    { model = initialModel
     , view = view
     , update = update
     }

@@ -1,8 +1,10 @@
 module Outline exposing 
   ( RootNode(..)
   , ChildNode(..)
+  , Msg(..)
   , outlineDecoder
   , newOutline
+  , update
   , view
   )
   
@@ -16,11 +18,32 @@ An outline editor written in Elm.
 -}
   
   
-import Html exposing (Html, ul)
-import Html.Attributes exposing (class)
+import Char exposing (KeyCode)
 import Json.Decode as Decode
+import Html exposing (Html, ul, li, text)
+import Html.Attributes exposing (class, contenteditable)
+import Html.Events as Events
+import Json.Decode as Decode
+
+
+type Msg =
+  IndentMsg
+  | OutdentMsg
   
-  
+
+type alias Key =
+  { keyCode: Char.KeyCode
+  , name: String
+  }  
+
+
+tab : Key
+tab =
+  { keyCode = 9
+  , name = "Tab"
+  }
+
+
 {-| The root data type for an outline. All outlines start at a RootNode and may
 grow recursively through any number of levels of nested ChildNodes.
 
@@ -82,6 +105,11 @@ contentsDecoder =
   Decode.map2 NodeContents
     (Decode.field "text" Decode.string)
     (Decode.field "children" (Decode.list (Decode.map ChildNode (Decode.lazy (\_-> contentsDecoder)))))
+
+
+update : Msg -> RootNode -> RootNode
+update msg root =
+  root
     
 
 {-| Render the outline view. 
@@ -91,9 +119,32 @@ subset of an outline, if provided with a ChildNode.
 
 -}
 view : RootNode -> Html msg
-view root =
+view (RootNode children) =
   ul [ class "elm-outline" ]
-  [
+    <| List.map nodeView children
+  
+
+{-| Render a single item in the outline.
+
+-}
+nodeView : ChildNode -> Html msg
+nodeView (ChildNode contents) =
+  li [ class "elm-outline-item", onKeyDown tab.keyCode ]
+  [ text contents.text
   ]
-  
-  
+
+
+onKeyDown : KeyCode -> (String -> msg) -> Attribute msg
+onKeyDown keyCode tagger =
+    let
+      isKey code = 
+        if code == keyCode then
+          Decode.succeed ""
+        else
+          Decode.fail ""
+                
+      decode =
+        Decode.andThen isKey Events.keyCode
+
+    in
+      on "keydown" <| Decode.map2 (\key value -> tagger value) decode targetValue
